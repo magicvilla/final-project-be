@@ -18,13 +18,13 @@ const Task = mongoose.model('Task', {
     required: [true, 'No empty task!'],
     trim: true
   },
-  isComplete:{
-    type:Boolean,
-    default: false
-  },
-  deadline: {
-    type: Date //Lägg till default: Date.now?? för sortering? react date picker
-  }
+  // isComplete:{
+  //   type:Boolean,
+  //   default: false
+  // },
+  // deadline: {
+  //   type: Date //Lägg till default: Date.now?? för sortering? react date picker
+  // }
 })
 
 const port = process.env.PORT || 8081
@@ -40,13 +40,15 @@ app.get('/', (req, res) => {
 // GET endpoint to display all tasks
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
-  res.json(allTasks)
+  res.json({ success: true, allTasks })
 })
 
 // POST endpoint for creating new task
 app.post('/tasks', async (req, res) => {
+  const { taskItem } = req.body
+  // const { deadline } = req.body
   try {
-    const newTask = await new Task({ taskItem: req.body.taskItem, deadline: req.body.deadline }).save()
+    const newTask = await new Task({ taskItem }).save()
     res.json(newTask)
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
