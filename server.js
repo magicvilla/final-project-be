@@ -18,6 +18,10 @@ const Task = mongoose.model('Task', {
     required: [true, 'No empty task!'],
     trim: true
   },
+  isComplete:{
+    type:Boolean,
+    default: false
+  },
   deadline: {
     type: Date //Lägg till default: Date.now?? för sortering? react date picker
   }
@@ -33,7 +37,7 @@ app.get('/', (req, res) => {
   res.send(listEndpoints(app))
 })
 
-// GET Display tasks
+// GET endpoint to display all tasks
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
   res.json(allTasks)
