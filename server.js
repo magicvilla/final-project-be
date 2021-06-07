@@ -19,6 +19,10 @@ const Task = mongoose.model('Task', {
     required: [true, 'Task cannot be empty'],
     trim: true
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
   // isComplete:{
   //   type:Boolean,
   //   default: false
@@ -58,6 +62,10 @@ const User = mongoose.model('User', {
   accessToken: {
     type: String,
     default: () => crypto.randomBytes(128).toString('hex')
+  },
+  task: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Task'
   }
 })
 
