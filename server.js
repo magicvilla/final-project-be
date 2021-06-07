@@ -62,6 +62,21 @@ const User = mongoose.model('User', {
 })
 
 // Authentication middleware here
+const authenticateUser = async (req, res, next) => {
+  const accessToken = req.header('Authorization')
+
+  try {
+    const user = await User.findOne({ accessToken })
+
+    if (user) {
+      next()
+    } else {
+      res.status(401).json({ success: false, message: 'Not authenticated' })
+    }
+  } catch (error) {
+    res.status(400).json({ success: false, message: 'Invalid request', error})
+  }
+}
 
 const port = process.env.PORT || 8082
 const app = express()
@@ -74,12 +89,14 @@ app.get('/', (req, res) => {
 })
 
 // GET endpoint to display all tasks
+app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
   res.json({ success: true, allTasks })
 })
 
 // POST endpoint for creating new task
+app.post('/tasks', authenticateUser)
 app.post('/tasks', async (req, res) => {
   const { taskItem } = req.body
   // const { deadline } = req.body
@@ -117,6 +134,7 @@ app.post('/register', async (req, res) => {
 })
 
 // POST endpoint to signin created user
+app.post('/signin', authenticateUser)
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body
 
