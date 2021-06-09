@@ -80,14 +80,14 @@ app.get('/', (req, res) => {
 })
 
 // GET endpoint to display all tasks
-//app.get('/tasks', authenticateUser)
+app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
   res.json({ success: true, allTasks })
 })
 
 // POST endpoint for creating new task
-//app.post('/tasks', authenticateUser)
+app.post('/tasks', authenticateUser)
 app.post('/tasks', async (req, res) => {
   const { taskItem, username } = req.body
   try {
@@ -128,7 +128,6 @@ app.post('/register', async (req, res) => {
 })
 
 // POST endpoint to signin created user
-//app.post('/signin', authenticateUser)
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body
   
