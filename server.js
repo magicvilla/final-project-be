@@ -94,7 +94,6 @@ app.get('/tasks', async (req, res) => {
 //app.post('/tasks', authenticateUser)
 app.post('/tasks', async (req, res) => {
   const { taskItem } = req.body
-  // const { deadline } = req.body
   try {
     const newTask = await new Task({ taskItem }).save()
     res.json(newTask)
@@ -108,13 +107,14 @@ app.post('/tasks', async (req, res) => {
 // Authentication here
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
-
+  //console.log(username, password)
   try {
     const salt = bcrypt.genSaltSync()
     const newUser = await new User({
-      username,
+      username: username,
       password: bcrypt.hashSync(password, salt)
     }).save()
+    //console.log(newUser)
     res.json({
       success: true,
       userId: newUser._id,
@@ -130,7 +130,7 @@ app.post('/register', async (req, res) => {
 //app.post('/signin', authenticateUser)
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body
-
+  
   try {
     const user = await User.findOne({ username })
     
