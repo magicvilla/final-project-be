@@ -19,10 +19,10 @@ const Task = mongoose.model('Task', {
     required: [true, 'Task cannot be empty'],
     trim: true
   },
-  user: {
+  user: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
-  }
+  }]
   // isComplete:{
   //   type:Boolean,
   //   default: false
@@ -49,10 +49,6 @@ const User = mongoose.model('User', {
   accessToken: {
     type: String,
     default: () => crypto.randomBytes(128).toString('hex')
-  },
-  task: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Task'
   }
 })
 
@@ -93,9 +89,14 @@ app.get('/tasks', async (req, res) => {
 // POST endpoint for creating new task
 //app.post('/tasks', authenticateUser)
 app.post('/tasks', async (req, res) => {
-  const { taskItem } = req.body
+  const { taskItem, username } = req.body
   try {
-    const newTask = await new Task({ taskItem }).save()
+    const user = await User.findOne({ username })
+
+    const newTask = await new Task({ 
+      taskItem,
+      user: [user]
+     }).save()
     res.json(newTask)
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
