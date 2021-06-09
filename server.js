@@ -41,19 +41,6 @@ const User = mongoose.model('User', {
     lowercase: true,
     trim: true
   },
-  email:  {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: [true, 'Email is already in use'],
-    lowercase: true,
-    trim: true,
-    validate: {
-      validator: (value) => {
-        return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(value)
-      },
-      message: 'Enter a valid email address'
-    }
-  },
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -97,14 +84,14 @@ app.get('/', (req, res) => {
 })
 
 // GET endpoint to display all tasks
-app.get('/tasks', authenticateUser)
+//app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
   res.json({ success: true, allTasks })
 })
 
 // POST endpoint for creating new task
-app.post('/tasks', authenticateUser)
+//app.post('/tasks', authenticateUser)
 app.post('/tasks', async (req, res) => {
   const { taskItem } = req.body
   // const { deadline } = req.body
@@ -120,20 +107,18 @@ app.post('/tasks', async (req, res) => {
 // expects username, email and password in the body from the POST req in FE
 // Authentication here
 app.post('/register', async (req, res) => {
-  const { username, email, password } = req.body
+  const { username, password } = req.body
 
   try {
     const salt = bcrypt.genSaltSync()
     const newUser = await new User({
       username,
-      email,
       password: bcrypt.hashSync(password, salt)
     }).save()
     res.json({
       success: true,
       userId: newUser._id,
       username: newUser.username,
-      email: newUser.email,
       accessToken: newUser.accessToken 
     })
   } catch (error) {
@@ -142,7 +127,7 @@ app.post('/register', async (req, res) => {
 })
 
 // POST endpoint to signin created user
-app.post('/signin', authenticateUser)
+//app.post('/signin', authenticateUser)
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body
 
