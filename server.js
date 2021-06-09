@@ -49,7 +49,7 @@ const User = mongoose.model('User', {
   accessToken: {
     type: String,
     default: () => crypto.randomBytes(128).toString('hex')
-  }
+  },
 })
 
 // Authentication middleware here
@@ -149,6 +149,21 @@ app.post('/signin', async (req, res) => {
     res.status(400).json({ success: false, message: 'Invalid request', error })
   }
 })
+
+//endpoint to update tasks
+app.patch("/tasks/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updatedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
+    if (updatedTask) {
+      res.json(updatedTask);
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: "Invalied requeset", error });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)
