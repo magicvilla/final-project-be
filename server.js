@@ -12,6 +12,8 @@ const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/finalProject"
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
 mongoose.Promise = Promise
 
+
+
 // TASK model
 const Task = mongoose.model('Task', {
   taskItem: {
@@ -24,37 +26,53 @@ const Task = mongoose.model('Task', {
     ref: 'User'
   }]
   // isComplete:{
-  //   type:Boolean,
-  //   default: false
-  // },
-  // deadline: {
-  //   type: Date //Lägg till default: Date.now?? för sortering? react date picker
-  // }
-})
+    //   type:Boolean,
+    //   default: false
+    // },
+    // deadline: {
+      //   type: Date //Lägg till default: Date.now?? för sortering? react date picker
+      // }
+    })
 
-// USER model
-const User = mongoose.model('User', {
-  username:{
-    type: String,
-    required: [true, 'Username is required'],
-    unique: [true, 'Username is already taken'],
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minLength: 8,
-  },
-  accessToken: {
-    type: String,
-    default: () => crypto.randomBytes(128).toString('hex')
-  },
-})
+  // List model
+  const List = mongoose.model('List', {
+    List: {
+      type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Task'
+      }],
+      required: [true, 'Task cannot be empty'],
+      trim: true
+    },
+    user: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }]
+  })
+    
+    // USER model
+    const User = mongoose.model('User', {
+      username:{
+        type: String,
+        required: [true, 'Username is required'],
+        unique: [true, 'Username is already taken'],
+        lowercase: true,
+        trim: true
+      },
+      password: {
+        type: String,
+        required: [true, 'Password is required'],
+        minLength: 8,
+      },
+      accessToken: {
+        type: String,
+        default: () => crypto.randomBytes(128).toString('hex')
+      },
+    })
 
-// Authentication middleware here
-const authenticateUser = async (req, res, next) => {
-  const accessToken = req.header('Authorization')
+    // Authentication middleware here
+    const authenticateUser = async (req, res, next) => {
+      const accessToken = req.header('Authorization')
 
   try {
     const user = await User.findOne({ accessToken })
@@ -79,7 +97,9 @@ app.get('/', (req, res) => {
   res.send(listEndpoints(app))
 })
 
-// GET endpoint to display all tasks
+// Endpoints for list?
+
+// GET endpoint to display all tasks (bara visa tasks med userid - findById?)
 app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
   const allTasks = await Task.find()
