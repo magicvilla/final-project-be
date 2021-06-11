@@ -99,8 +99,16 @@ app.get('/', (req, res) => {
 // GET endpoint to display all tasks (bara visa tasks med userid - findById?)
 app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
-  const allTasks = await Task.find().populate('user', 'username')
-  res.json({ success: true, allTasks })
+  const { _id } = req.user
+  const allTasks = await Task.find({ user: _id })
+    if(allTasks) {
+      res.json({ 
+        success: true, 
+        allTasks 
+      })
+    } else {
+      res.status(400).json({ message: 'Invalid request'})
+    }
 })
 
 // POST endpoint for creating new task
