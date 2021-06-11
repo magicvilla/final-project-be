@@ -21,63 +21,56 @@ const Task = mongoose.model('Task', {
     required: [true, 'Task cannot be empty'],
     trim: true
   },
-  user: [{
-    type: mongoose.Schema.Types.ObjectId,
+  user: {
+    type: mongoose.Schema.Types.ObjectId, // Maks hade [] runt {} för att skapa array av users
     ref: 'User'
-  }]
-  // isComplete:{
-    //   type:Boolean,
-    //   default: false
-    // },
-    // deadline: {
-      //   type: Date //Lägg till default: Date.now?? för sortering? react date picker
-      // }
-    })
+  }
+})
 
-  // List model
-  const List = mongoose.model('List', {
-    List: {
-      type: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Task'
-      }],
-      required: [true, 'Task cannot be empty'],
-      trim: true
-    },
-    user: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }]
-  })
+  //List model
+  // const List = mongoose.model('List', {
+  //   List: {
+  //     type: Array,
+  //     task: [{
+  //       type: mongoose.Schema.Types.ObjectId,
+  //       ref: 'Task',
+  //     }],
+  //   },
+  //   user: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: 'User'
+  //   }
+  // })
     
-    // USER model
-    const User = mongoose.model('User', {
-      username:{
-        type: String,
-        required: [true, 'Username is required'],
-        unique: [true, 'Username is already taken'],
-        lowercase: true,
-        trim: true
-      },
-      password: {
-        type: String,
-        required: [true, 'Password is required'],
-        minLength: 8,
-      },
-      accessToken: {
-        type: String,
-        default: () => crypto.randomBytes(128).toString('hex')
-      },
-    })
+// USER model
+const User = mongoose.model('User', {
+  username:{
+    type: String,
+    required: [true, 'Username is required'],
+    unique: [true, 'Username is already taken'],
+    lowercase: true,
+    trim: true
+  },
+  password: {
+     type: String,
+     required: [true, 'Password is required'],
+     minLength: 8,
+  },
+  accessToken: {
+    type: String,
+    default: () => crypto.randomBytes(128).toString('hex')
+  },
+})
 
-    // Authentication middleware here
-    const authenticateUser = async (req, res, next) => {
-      const accessToken = req.header('Authorization')
+// Authentication middleware here
+const authenticateUser = async (req, res, next) => {
+  const accessToken = req.header('Authorization')
 
   try {
     const user = await User.findOne({ accessToken })
 
     if (user) {
+      req.user = user // La till detta
       next()
     } else {
       res.status(401).json({ success: false, message: 'Not authenticated' })
@@ -87,7 +80,7 @@ const Task = mongoose.model('Task', {
   }
 }
 
-const port = process.env.PORT || 8082
+const port = process.env.PORT || 8084
 const app = express()
 
 app.use(cors())
@@ -98,11 +91,15 @@ app.get('/', (req, res) => {
 })
 
 // Endpoints for list?
+// app.get('/list', async (req, res) => {
+//   const newList = await List.find().populate('task', 'taskItem').populate('user', 'username')
+//   res.json({ success: true, newList})
+// })
 
 // GET endpoint to display all tasks (bara visa tasks med userid - findById?)
 app.get('/tasks', authenticateUser)
 app.get('/tasks', async (req, res) => {
-  const allTasks = await Task.find()
+  const allTasks = await Task.find().populate('user', 'username')
   res.json({ success: true, allTasks })
 })
 
@@ -112,12 +109,11 @@ app.post('/tasks', async (req, res) => {
   const { taskItem, username } = req.body
   try {
     const user = await User.findOne({ username })
-
     const newTask = await new Task({ 
       taskItem,
-      user: [user]
+      user // här hade maks [] för en array av users
      }).save()
-    res.json(newTask)
+    res.json({ success: true, newTask})
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
   }
@@ -125,7 +121,6 @@ app.post('/tasks', async (req, res) => {
 
 // POST endpoint for register as a new user
 // expects username, email and password in the body from the POST req in FE
-// Authentication here
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
   //console.log(username, password)
