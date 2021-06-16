@@ -153,10 +153,11 @@ app.patch('/tasks', async (req, res) => {
 })
 
 // DELETE request - delete list
+app.delete("/lists/:id", authenticateUser)
 app.delete("/lists/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedList = await List.findOneAndDelete({ _id: id });
+    const deletedList = await List.findOneAndDelete({ _id: id }); //findOneAndDelete
     if (deletedList) {
       res.json(deletedList);
     } else {
