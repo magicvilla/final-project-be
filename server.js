@@ -13,7 +13,7 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, us
 mongoose.Promise = Promise
 
   //List model
-  const TodoList = mongoose.model('TodoList', {
+  const List = mongoose.model('List', {
     listName: {
         type: String,
         required: [true, 'Task cannot be empty'],
@@ -104,7 +104,7 @@ app.get('/', (req, res) => {
 app.get('/lists', authenticateUser)
 app.get('/lists', async (req, res) => {
   const { _id } = req.user
-  const allLists = await TodoList.find({ collaborators: mongoose.Types.ObjectId(_id) })
+  const allLists = await List.find({ collaborators: mongoose.Types.ObjectId(_id) })
     if (allLists) {
       res.json({ success: true, allLists })
     } else {
@@ -118,7 +118,7 @@ app.post('/lists', async (req, res) => {
   const { listName } = req.body
   try {
     const { _id } = req.user
-    const newList = await new TodoList({
+    const newList = await new List({
       collaborators:[_id], 
       listName,
      }).save()
@@ -133,7 +133,7 @@ app.get('/tasks/:id', authenticateUser)
 app.get ('/tasks/:id', async (req, res) => {
   const { id } = req.params
     try {
-      const allTasks = await TodoList.findById({  _id: id })
+      const allTasks = await List.findById({  _id: id })
       res.json({ success: true, tasks: allTasks.tasks})
     } catch (error) {
       res.status(400).json({ message: 'Invalid request', error })
@@ -145,7 +145,7 @@ app.patch('/tasks', authenticateUser)
 app.patch('/tasks', async (req, res) => {
   const { data, listId } = req.body
   try {
-    const list = await TodoList.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
+    const list = await List.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
     res.json({ success: true, list})
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
