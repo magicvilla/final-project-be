@@ -12,37 +12,47 @@ const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/finalProject"
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
 mongoose.Promise = Promise
 
+  //List model
+  const TodoList = mongoose.model('TodoList', {
+    listName: {
+        type: String,
+        required: [true, 'Task cannot be empty'],
+        maxlength: 20,
+        trim: true
+      },
+      user: {
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User'
+      },
+      collaborators: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
+      tasks: [{ // can this be done in a nicer way
+        taskItem: {
+          type: String,
+          required: [true, 'Task cannot be empty'],
+          trim: true
+        },
+        complete:{
+          type: Boolean, // check if list is complete
+        }
+      }]
+  })
 
-
-// TASK model
+// Task model
 const Task = mongoose.model('Task', {
   taskItem: {
     type: String,
     required: [true, 'Task cannot be empty'],
     trim: true
   },
-  user: {
-    type: mongoose.Schema.Types.ObjectId, // Maks hade [] runt {} för att skapa array av users
-    ref: 'User'
+  complete:{
+    type: Boolean, // check if task is checked
   }
 })
-
-  //List model
-  // const List = mongoose.model('List', {
-  //   List: {
-  //     type: Array,
-  //     task: [{
-  //       type: mongoose.Schema.Types.ObjectId,
-  //       ref: 'Task',
-  //     }],
-  //   },
-  //   user: {
-  //     type: mongoose.Schema.Types.ObjectId,
-  //     ref: 'User'
-  //   }
-  // })
     
-// USER model
+// User model
 const User = mongoose.model('User', {
   username:{
     type: String,
@@ -70,7 +80,7 @@ const authenticateUser = async (req, res, next) => {
     const user = await User.findOne({ accessToken })
 
     if (user) {
-      req.user = user // La till detta
+      req.user = user 
       next()
     } else {
       res.status(401).json({ success: false, message: 'Not authenticated' })
@@ -90,45 +100,59 @@ app.get('/', (req, res) => {
   res.send(listEndpoints(app))
 })
 
-// Endpoints for list?
-// app.get('/list', async (req, res) => {
-//   const newList = await List.find().populate('task', 'taskItem').populate('user', 'username')
-//   res.json({ success: true, newList})
-// })
-
-// GET endpoint to display all tasks (bara visa tasks med userid - findById?)
-app.get('/tasks', authenticateUser)
-app.get('/tasks', async (req, res) => {
+// GET request - all lists
+app.get('/lists', authenticateUser)
+app.get('/lists', async (req, res) => {
   const { _id } = req.user
-  const allTasks = await Task.find({ user: _id })
-    if(allTasks) {
-      res.json({ 
-        success: true, 
-        allTasks 
-      })
+  const allLists = await TodoList.find({ collaborators: mongoose.Types.ObjectId(_id) })
+    if (allLists) {
+      res.json({ success: true, allLists })
     } else {
       res.status(400).json({ message: 'Invalid request'})
     }
 })
 
-// POST endpoint for creating new task
-app.post('/tasks', authenticateUser)
-app.post('/tasks', async (req, res) => {
-  const { taskItem, username } = req.body
+// POST request - create new list
+app.post('/lists', authenticateUser)
+app.post('/lists', async (req, res) => {
+  const { listName } = req.body
   try {
-    const user = await User.findOne({ username })
-    const newTask = await new Task({ 
-      taskItem,
-      user // här hade maks [] för en array av users
+    const { _id } = req.user
+    const newList = await new TodoList({
+      collaborators:[_id], 
+      listName,
      }).save()
-    res.json({ success: true, newTask})
+    res.json({ success: true, newList})
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
   }
 })
 
-// POST endpoint for register as a new user
-// expects username, email and password in the body from the POST req in FE
+// GET request - all tasks
+app.get('/tasks/:id', authenticateUser)
+app.get ('/tasks/:id', async (req, res) => {
+  const { id } = req.params
+    try {
+      const allTasks = await TodoList.findById({  _id: id })
+      res.json({ success: true, tasks: allTasks.tasks})
+    } catch (error) {
+      res.status(400).json({ message: 'Invalid request', error })
+    }
+})
+
+// PATCH request - creating new task in a list that already exists (PATCH)
+app.patch('/tasks', authenticateUser)
+app.patch('/tasks', async (req, res) => {
+  const { data, listId } = req.body
+  try {
+    const list = await TodoList.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
+    res.json({ success: true, list})
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid request', error })
+  }
+})
+
+// POST request - register new user
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
   //console.log(username, password)
@@ -138,7 +162,6 @@ app.post('/register', async (req, res) => {
       username: username,
       password: bcrypt.hashSync(password, salt)
     }).save()
-    //console.log(newUser)
     res.json({
       success: true,
       userId: newUser._id,
@@ -150,7 +173,7 @@ app.post('/register', async (req, res) => {
   }
 })
 
-// POST endpoint to signin created user
+// POST request - sign in
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body
   
@@ -172,21 +195,36 @@ app.post('/signin', async (req, res) => {
   }
 })
 
-//endpoint to update tasks
-app.patch("/tasks/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const updatedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
-    if (updatedTask) {
-      res.json(updatedTask);
-    } else {
-      res.status(404).json({ message: "Not found" });
-    }
-  } catch (error) {
-    res.status(400).json({ message: "Invalied requeset", error });
-  }
-});
-
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)
 })
+
+//PATCH request - update tasks
+// app.patch("/tasks/:id", async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const updatedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
+//     if (updatedTask) {
+//       res.json(updatedTask);
+//     } else {
+//       res.status(404).json({ message: "Not found" });
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: "Invalied requeset", error });
+//   }
+// });
+
+//Patch request heckbox
+// app.patch("/toggleTaskCompletion/:id", async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const checkedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
+//     if (updatedTask) {
+//       res.json(checkedTask);
+//     } else {
+//       res.status(404).json({ message: "Not found" });
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: "Invalied requeset", error });
+//   }
+// });
