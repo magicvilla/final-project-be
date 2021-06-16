@@ -40,7 +40,7 @@ mongoose.Promise = Promise
       }]
   })
 
-// Task model
+//Task model
 const Task = mongoose.model('Task', {
   taskItem: {
     type: String,
@@ -140,13 +140,13 @@ app.get ('/tasks/:id', async (req, res) => {
     }
 })
 
-// PATCH request - creating new task in a list that already exists (PATCH)
+// PATCH request - creating new task in a list that already exists
 app.patch('/tasks', authenticateUser)
 app.patch('/tasks', async (req, res) => {
   const { data, listId } = req.body
   try {
-    const list = await List.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
-    res.json({ success: true, list})
+    const newTask = await List.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
+    res.json({ success: true, newTask})
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
   }
