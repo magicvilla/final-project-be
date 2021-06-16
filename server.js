@@ -90,7 +90,7 @@ const authenticateUser = async (req, res, next) => {
   }
 }
 
-const port = process.env.PORT || 8084
+const port = process.env.PORT || 8085
 const app = express()
 
 app.use(cors())
@@ -151,6 +151,21 @@ app.patch('/tasks', async (req, res) => {
     res.status(400).json({ message: 'Invalid request', error })
   }
 })
+
+// DELETE request - delete list
+app.delete("/lists/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedList = await List.findOneAndDelete({ _id: id });
+    if (deletedList) {
+      res.json(deletedList);
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: "Invalid request", error });
+  }
+});
 
 // POST request - register new user
 app.post('/register', async (req, res) => {
