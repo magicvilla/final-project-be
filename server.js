@@ -140,7 +140,7 @@ app.get ('/tasks/:id', async (req, res) => {
     }
 })
 
-// PATCH request - creating new task in a list
+// PATCH request - update list with new task
 app.patch('/tasks', authenticateUser)
 app.patch('/tasks', async (req, res) => {
   const { data, listId } = req.body
@@ -157,7 +157,7 @@ app.delete("/lists/:id", authenticateUser)
 app.delete("/lists/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedList = await List.findOneAndDelete({ _id: id });
+    const deletedList = await List.findByIdAndRemove(id); 
     if (deletedList) {
       res.json(deletedList);
     } else {
