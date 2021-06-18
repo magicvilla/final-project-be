@@ -90,7 +90,7 @@ const authenticateUser = async (req, res, next) => {
   }
 }
 
-const port = process.env.PORT || 8085
+const port = process.env.PORT || 8086
 const app = express()
 
 app.use(cors())
@@ -157,7 +157,7 @@ app.delete("/lists/:id", authenticateUser)
 app.delete("/lists/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const deletedList = await List.findOneAndDelete({ _id: id }); //findOneAndDelete
+    const deletedList = await List.findOneAndDelete({ _id: id });
     if (deletedList) {
       res.json(deletedList);
     } else {
