@@ -128,6 +128,39 @@ app.post('/lists', async (req, res) => {
   }
 })
 
+app.patch('/lists/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const editedList = await List.findByIdAndUpdate(id, 
+      req.body, 
+      { 
+        new: true 
+      }
+    )
+    res.json({ success: true, editedList })
+  } catch (error) {
+    res.status(400).json({ success: false, message: 'Invalid request', error })
+  }
+})
+
+// DELETE request - delete list
+app.delete("/lists/:id", authenticateUser)
+app.delete("/lists/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedList = await List.findByIdAndRemove(id); 
+    if (deletedList) {
+      res.json(deletedList);
+    } else {
+      res.status(404).json({ message: "Not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ message: "Invalid request", error });
+  }
+})
+
+
 // GET request - all tasks
 app.get('/tasks/:id', authenticateUser)
 app.get ('/tasks/:id', async (req, res) => {
@@ -152,21 +185,6 @@ app.patch('/tasks', async (req, res) => {
   }
 })
 
-// DELETE request - delete list
-app.delete("/lists/:id", authenticateUser)
-app.delete("/lists/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedList = await List.findByIdAndRemove(id); 
-    if (deletedList) {
-      res.json(deletedList);
-    } else {
-      res.status(404).json({ message: "Not found" });
-    }
-  } catch (error) {
-    res.status(400).json({ message: "Invalid request", error });
-  }
-});
 
 //create endpoint to delete task - pull
 // app.patch('/tasks', authenticateUser)
