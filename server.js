@@ -41,16 +41,16 @@ mongoose.Promise = Promise
   })
 
 //Task model
-const Task = mongoose.model('Task', {
-  taskItem: {
-    type: String,
-    required: [true, 'Task cannot be empty'],
-    trim: true
-  },
-  complete:{
-    type: Boolean, // check if task is checked
-  }
-})
+// const Task = mongoose.model('Task', {
+//   taskItem: {
+//     type: String,
+//     required: [true, 'Task cannot be empty'],
+//     trim: true
+//   },
+//   complete:{
+//     type: Boolean, // check if task is checked
+//   }
+// })
     
 // User model
 const User = mongoose.model('User', {
@@ -72,7 +72,7 @@ const User = mongoose.model('User', {
   },
 })
 
-// Authentication middleware here
+// Authentication middleware
 const authenticateUser = async (req, res, next) => {
   const accessToken = req.header('Authorization')
 
@@ -100,7 +100,7 @@ app.get('/', (req, res) => {
   res.send(listEndpoints(app))
 })
 
-// GET request - all lists
+// GET request - all todo lists
 app.get('/lists', authenticateUser)
 app.get('/lists', async (req, res) => {
   const { _id } = req.user
@@ -112,7 +112,7 @@ app.get('/lists', async (req, res) => {
     }
 })
 
-// POST request - create new list
+// POST request - create new todo list
 app.post('/lists', authenticateUser)
 app.post('/lists', async (req, res) => {
   const { listName } = req.body
@@ -140,7 +140,7 @@ app.get ('/tasks/:id', async (req, res) => {
     }
 })
 
-// PATCH request - update list with new task
+// PATCH request - update todo list with new task
 app.patch('/tasks', authenticateUser)
 app.patch('/tasks', async (req, res) => {
   const { data, listId } = req.body
@@ -167,6 +167,18 @@ app.delete("/lists/:id", async (req, res) => {
     res.status(400).json({ message: "Invalid request", error });
   }
 });
+
+//create endpoint to delete task - pull
+// app.patch('/tasks', authenticateUser)
+// app.patch('/tasks', async (req, res) => {
+//   const { data, listId } = req.body
+//   try {
+//     const removeTask = await List.findOneAndDelete({ _id: listId }, { $pull: { tasks: data } }, { new: true })
+//     res.json({ success: true, removeTask})
+//   } catch (error) {
+//     res.status(400).json({ message: 'Invalid request', error })
+//   }
+// })
 
 // POST request - register new user
 app.post('/register', async (req, res) => {
