@@ -12,7 +12,7 @@ const mongoUrl = process.env.MONGO_URL || "mongodb://localhost/finalProject"
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true })
 mongoose.Promise = Promise
 
-  //List model
+  //Todo list model
   const List = mongoose.model('List', {
     listName: {
         type: String,
@@ -28,29 +28,17 @@ mongoose.Promise = Promise
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
       }],
-      tasks: [{ // can this be done in a nicer way
+      tasks: [{
         taskItem: {
           type: String,
           required: [true, 'Task cannot be empty'],
           trim: true
         },
         complete:{
-          type: Boolean, // check if list is complete
+          type: Boolean,
         }
       }]
   })
-
-//Task model
-// const Task = mongoose.model('Task', {
-//   taskItem: {
-//     type: String,
-//     required: [true, 'Task cannot be empty'],
-//     trim: true
-//   },
-//   complete:{
-//     type: Boolean, // check if task is checked
-//   }
-// })
     
 // User model
 const User = mongoose.model('User', {
@@ -128,6 +116,7 @@ app.post('/lists', async (req, res) => {
   }
 })
 
+// PATCH request - edit listName
 app.patch('/lists/:id', async (req, res) => {
   const { id } = req.params
 
@@ -160,7 +149,6 @@ app.delete("/lists/:id", async (req, res) => {
   }
 })
 
-
 // GET request - all tasks
 app.get('/tasks/:id', authenticateUser)
 app.get ('/tasks/:id', async (req, res) => {
@@ -184,19 +172,6 @@ app.patch('/tasks', async (req, res) => {
     res.status(400).json({ message: 'Invalid request', error })
   }
 })
-
-
-//create endpoint to delete task - pull
-// app.patch('/tasks', authenticateUser)
-// app.patch('/tasks', async (req, res) => {
-//   const { data, listId } = req.body
-//   try {
-//     const removeTask = await List.findOneAndDelete({ _id: listId }, { $pull: { tasks: data } }, { new: true })
-//     res.json({ success: true, removeTask})
-//   } catch (error) {
-//     res.status(400).json({ message: 'Invalid request', error })
-//   }
-// })
 
 // POST request - register new user
 app.post('/register', async (req, res) => {
@@ -274,3 +249,15 @@ app.listen(port, () => {
 //     res.status(400).json({ message: "Invalied requeset", error });
 //   }
 // });
+
+//create endpoint to delete task - pull
+// app.patch('/tasks', authenticateUser)
+// app.patch('/tasks', async (req, res) => {
+//   const { data, listId } = req.body
+//   try {
+//     const removeTask = await List.findOneAndDelete({ _id: listId }, { $pull: { tasks: data } }, { new: true })
+//     res.json({ success: true, removeTask})
+//   } catch (error) {
+//     res.status(400).json({ message: 'Invalid request', error })
+//   }
+// })
