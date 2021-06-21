@@ -140,12 +140,12 @@ app.delete("/lists/:id", async (req, res) => {
   try {
     const deletedList = await List.findByIdAndRemove(id); 
     if (deletedList) {
-      res.json(deletedList);
+      res.json({success: true, deletedList});
     } else {
-      res.status(404).json({ message: "Not found" });
+      res.status(404).json({ success: false, message: "Not found" });
     }
   } catch (error) {
-    res.status(400).json({ message: "Invalid request", error });
+    res.status(400).json({ success: false, message: "Invalid request", error });
   }
 })
 
