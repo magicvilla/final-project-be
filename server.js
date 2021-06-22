@@ -13,8 +13,8 @@ mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true, us
 mongoose.Promise = Promise
 
   //Todo list model
-  const List = mongoose.model('List', {
-    listName: {
+  const TodoList = mongoose.model('TodoList', { // List
+    listTitle: { // listName
         type: String,
         required: [true, 'Task cannot be empty'],
         maxlength: 20,
@@ -29,7 +29,7 @@ mongoose.Promise = Promise
         ref: 'User'
       }],
       tasks: [{
-        taskItem: {
+        taskTitle: { //taskItem
           type: String,
           required: [true, 'Task cannot be empty'],
           trim: true
@@ -92,7 +92,7 @@ app.get('/', (req, res) => {
 app.get('/lists', authenticateUser)
 app.get('/lists', async (req, res) => {
   const { _id } = req.user
-  const allLists = await List.find({ collaborators: mongoose.Types.ObjectId(_id) })
+  const allLists = await TodoList.find({ collaborators: mongoose.Types.ObjectId(_id) })
     if (allLists) {
       res.json({ success: true, allLists })
     } else {
@@ -100,74 +100,29 @@ app.get('/lists', async (req, res) => {
     }
 })
 
-// POST request - create new todo list
-app.post('/lists', authenticateUser)
-app.post('/lists', async (req, res) => {
-  const { listName } = req.body
-  try {
-    const { _id } = req.user
-    const newList = await new List({
-      collaborators:[_id], 
-      listName,
-     }).save()
-    res.json({ success: true, newList})
-  } catch (error) {
-    res.status(400).json({ message: 'Invalid request', error })
-  }
-})
-
-// PATCH request - edit listName
-app.patch('/lists/:id', async (req, res) => {
-  const { id } = req.params
-
-  try {
-    const editedList = await List.findByIdAndUpdate(id, 
-      req.body, 
-      { 
-        new: true 
-      }
-    )
-    res.json({ success: true, editedList })
-  } catch (error) {
-    res.status(400).json({ success: false, message: 'Invalid request', error })
-  }
-})
-
-// DELETE request - delete list
-app.delete("/lists/:id", authenticateUser)
-app.delete("/lists/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const deletedList = await List.findByIdAndRemove(id); 
-    if (deletedList) {
-      res.json({success: true, deletedList});
-    } else {
-      res.status(404).json({ success: false, message: "Not found" });
-    }
-  } catch (error) {
-    res.status(400).json({ success: false, message: "Invalid request", error });
-  }
-})
-
 // GET request - all tasks
 app.get('/tasks/:id', authenticateUser)
 app.get ('/tasks/:id', async (req, res) => {
   const { id } = req.params
     try {
-      const allTasks = await List.findById({  _id: id })
+      const allTasks = await TodoList.findById({  _id: id })
       res.json({ success: true, tasks: allTasks.tasks})
     } catch (error) {
       res.status(400).json({ message: 'Invalid request', error })
     }
 })
 
-// PATCH request - update todo list with new task
-app.patch('/tasks', authenticateUser)
-app.patch('/tasks', async (req, res) => {
-  const { data, listId } = req.body
+// POST request - create new todo list
+app.post('/lists', authenticateUser)
+app.post('/lists', async (req, res) => {
+  const { listTitle } = req.body //listName
   try {
-    const newTask = await List.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
-    res.json({ success: true, newTask})
+    const { _id } = req.user
+    const newList = await new TodoList({
+      collaborators:[_id], 
+      listTitle,
+     }).save()
+    res.json({ success: true, newList})
   } catch (error) {
     res.status(400).json({ message: 'Invalid request', error })
   }
@@ -176,7 +131,6 @@ app.patch('/tasks', async (req, res) => {
 // POST request - register new user
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
-  //console.log(username, password)
   try {
     const salt = bcrypt.genSaltSync()
     const newUser = await new User({
@@ -216,48 +170,73 @@ app.post('/signin', async (req, res) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`)
+// PATCH request - edit listTitle
+app.patch('/lists/:id', async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const editedList = await TodoList.findByIdAndUpdate(id, req.body, { new: true })
+    res.json({ success: true, editedList })
+  } catch (error) {
+    res.status(400).json({ success: false, message: 'Invalid request', error })
+  }
 })
 
-//PATCH request - update tasks
-// app.patch("/tasks/:id", async (req, res) => {
-//   const { id } = req.params;
-//   try {
-//     const updatedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
-//     if (updatedTask) {
-//       res.json(updatedTask);
-//     } else {
-//       res.status(404).json({ message: "Not found" });
-//     }
-//   } catch (error) {
-//     res.status(400).json({ message: "Invalied requeset", error });
-//   }
-// });
+// PATCH request - update todo list with new task
+app.patch('/tasks', authenticateUser) // /list/tasks
+app.patch('/tasks', async (req, res) => {
+  const { data, listId } = req.body
+  try {
+    const newTask = await TodoList.findOneAndUpdate({ _id: listId }, { $push: { tasks: data } }, { new: true })
+    res.json({ success: true, newTask})
+  } catch (error) {
+    res.status(400).json({ message: 'Invalid request', error })
+  }
+})
 
-//Patch request heckbox
-// app.patch("/toggleTaskCompletion/:id", async (req, res) => {
-//   const { id } = req.params;
-//   try {
-//     const checkedTask= await Task.findByIdAndUpdate(id, req.body, { new: true, });
-//     if (updatedTask) {
-//       res.json(checkedTask);
-//     } else {
-//       res.status(404).json({ message: "Not found" });
-//     }
-//   } catch (error) {
-//     res.status(400).json({ message: "Invalied requeset", error });
-//   }
-// });
-
-//create endpoint to delete task - pull
+//PATCH request - update todo list to remove task
 // app.patch('/tasks', authenticateUser)
 // app.patch('/tasks', async (req, res) => {
 //   const { data, listId } = req.body
 //   try {
-//     const removeTask = await List.findOneAndDelete({ _id: listId }, { $pull: { tasks: data } }, { new: true })
+//     const removeTask = await List.findOneAndUpdate({ _id: listId }, { $pull: { tasks: data } }, { new: true })
 //     res.json({ success: true, removeTask})
 //   } catch (error) {
 //     res.status(400).json({ message: 'Invalid request', error })
 //   }
 // })
+
+//Patch request - toggle checkbox
+// app.patch("/toggleTaskCompletion/:id", async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const checkedTask= await List.findByIdAndUpdate(id, req.body, { new: true, });
+//     if (checkedTask) {
+//       res.json( { success: true, checkedTask});
+//     } else {
+//       res.status(404).json({ message: "Not found" });
+//     }
+//   } catch (error) {
+//     res.status(400).json({ message: "Invalied requeset", error });
+//   }
+// });
+
+// DELETE request - delete list
+app.delete("/lists/:id", authenticateUser)
+app.delete("/lists/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedList = await TodoList.findByIdAndRemove(id); 
+    if (deletedList) {
+      res.json({success: true, deletedList});
+    } else {
+      res.status(404).json({ success: false, message: "Not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ success: false, message: "Invalid request", error });
+  }
+})
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`)
+})
