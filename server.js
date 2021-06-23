@@ -52,7 +52,7 @@ const User = mongoose.model('User', {
   password: {
      type: String,
      required: [true, 'Password is required'],
-     minLength: 8,
+     minlength: 8,
   },
   accessToken: {
     type: String,
