@@ -52,7 +52,7 @@ const User = mongoose.model('User', {
   password: {
      type: String,
      required: [true, 'Password is required'],
-     minlength: 8,
+     minlength: 8
   },
   accessToken: {
     type: String,
@@ -96,7 +96,7 @@ app.get('/lists', async (req, res) => {
     if (allLists) {
       res.json({ success: true, allLists })
     } else {
-      res.status(400).json({ message: 'Invalid request'})
+      res.status(400).json({ success: false, message: 'Invalid request'})
     }
 })
 
@@ -108,7 +108,7 @@ app.get ('/tasks/:id', async (req, res) => {
       const allTasks = await TodoList.findById({  _id: id })
       res.json({ success: true, tasks: allTasks.tasks})
     } catch (error) {
-      res.status(400).json({ message: 'Invalid request', error })
+      res.status(400).json({ success: false, message: 'Invalid request', error })
     }
 })
 
@@ -124,7 +124,7 @@ app.post('/lists', async (req, res) => {
      }).save()
     res.json({ success: true, newList})
   } catch (error) {
-    res.status(400).json({ message: 'Invalid request', error })
+    res.status(400).json({ success: false, message: 'Invalid request', error })
   }
 })
 
