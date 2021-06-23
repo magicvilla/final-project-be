@@ -78,7 +78,7 @@ const authenticateUser = async (req, res, next) => {
   }
 }
 
-const port = process.env.PORT || 8086
+const port = process.env.PORT || 8087
 const app = express()
 
 app.use(cors())
