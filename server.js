@@ -17,7 +17,7 @@ mongoose.Promise = Promise
     listTitle: { 
         type: String,
         required: [true, 'Task cannot be empty'],
-        maxlength: 20,
+        maxlength: 50,
         trim: true
       },
       user: {
@@ -194,7 +194,7 @@ app.patch('/tasks/delete', async (req, res) => {
   }
 })
 
-//  update complete (checkbox)
+//  update complete (checkbox) (set - replaces the value of a filed with a specified value)
 app.patch('/tasks/update', authenticateUser)
 app.patch('/tasks/update', async (req, res) => {
   const { listId, complete, taskId } = req.body
